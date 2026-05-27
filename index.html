@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chamada e Feedback - Atitus - Professor Alan Mafalda</title>
+    <title>Chamada e Feedback - Atitus</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f0f2f5; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f0f2f5; user-select: none; }
         .container { max-width: 800px; margin: 0 auto; }
         #location-box { text-align: center; padding: 30px 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         #verify-btn { padding: 12px 24px; background-color: #0056b3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; margin-top: 10px; width: 100%; max-width: 400px; }
@@ -19,12 +19,12 @@
         #chamada-container, #feedback-container { display: none; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <div class="container">
     
     <div id="location-box">
-        <h2 style="margin-top: 0; color: #333;">Validação de Presença - Professor Alan Mafalda</h2>
+        <h2 style="margin-top: 0; color: #333;">Validação de Presença</h2>
         <p style="color: #555; margin-bottom: 5px;">
             Para acessar a chamada e o feedback, confirme que você está no Campus Santa Teresinha.
         </p>
@@ -37,24 +37,44 @@
 
     <div id="chamada-container">
         <h3 style="text-align: center; color: #333;">Passo 1: Assine a Chamada</h3>
-        <iframe id="iframe-chamada" src="https://docs.google.com/forms/d/e/1FAIpQLSdAbejon1aYUmKAkeuXB3IzvvBW9P7RcdIr8lJYVkNJX6ejDg/viewform?embedded=true">Carregando…</iframe>
+        <iframe id="iframe-chamada" src="">Carregando…</iframe>
     </div>
 
     <div id="feedback-container">
         <h3 style="text-align: center; color: #333;">Passo 2: Preencha o Feedback</h3>
-        <iframe id="iframe-feedback" src="https://docs.google.com/forms/d/e/1FAIpQLSeMqlH6cBChrZP8qOah9P7Te0Vgb6CxFzcOrl256aTljv-2Vw/viewform?embedded=true">Carregando…</iframe>
+        <iframe id="iframe-feedback" src="">Carregando…</iframe>
     </div>
 
 </div>
 
 <script>
-// Lógica para detectar quando o aluno clica em "Enviar" na chamada
-let chamadaCarregada = false;
+// ==========================================
+// PROTEÇÕES BÁSICAS DE PÁGINA
+// ==========================================
+// Tenta bloquear F12 e atalhos de desenvolvedor
+document.onkeydown = function(e) {
+    if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.shiftKey && e.keyCode == 74)) {
+        return false;
+    }
+};
 
+// URLs codificadas em Base64 para não aparecerem na busca do código-fonte
+// Decodificando essas strings, temos as URLs originais do Google Forms
+const urlForm1 = atob('aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTZEFiZWpvbjFhWVVtS0FrZXVYQjNJenZ2Qlc5UDdSY2RJcjhsSllWa05KWDZlakRnL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=');
+const urlForm2 = atob('aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTZU1xbEg2Y0JDaHJaUDhxT2FoOVA3VGUwVmdiNmN4RnpjT3JsMjU2YVRsanYtMlZ3L3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=');
+
+// Lógica de transição entre chamada e feedback
+let chamadaCarregada = false;
 document.getElementById('iframe-chamada').onload = function() {
+    // Evita executar isso quando o iframe está vazio (antes de validar)
+    if (this.src === "" || this.src === window.location.href) return;
+
     if (chamadaCarregada) {
         document.getElementById('chamada-container').style.display = 'none';
         document.getElementById('feedback-container').style.display = 'block';
+        
+        // Injeta a URL do feedback apenas na hora de usar
+        document.getElementById('iframe-feedback').src = urlForm2;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
         chamadaCarregada = true;
@@ -62,49 +82,33 @@ document.getElementById('iframe-chamada').onload = function() {
 };
 
 // ==========================================
-// CÓDIGO SECRETO (CHEAT CODE) PARA TESTES
-// Monitora a tecla 'T' do teclado
+// CÓDIGO SECRETO VIA URL (?modo=alan)
 // ==========================================
-let isTPressed = false;
+const urlParams = new URLSearchParams(window.location.search);
+const isProfessor = (urlParams.get('modo') === 'alan');
 
-document.addEventListener('keydown', function(event) {
-    if (event.key && event.key.toLowerCase() === 't') {
-        isTPressed = true;
-    }
-});
-
-document.addEventListener('keyup', function(event) {
-    if (event.key && event.key.toLowerCase() === 't') {
-        isTPressed = false;
-    }
-});
-// ==========================================
-
-
-// Lógica do botão de GPS e Horário
+// Lógica de Validação
 document.getElementById('verify-btn').addEventListener('click', function() {
     const statusText = document.getElementById('status-message');
     const verifyBtn = document.getElementById('verify-btn');
     const locationBox = document.getElementById('location-box');
     const chamadaContainer = document.getElementById('chamada-container');
 
-    // Verifica o horário do dispositivo (Se o T estiver pressionado, pula essa verificação)
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    // Lógica da Janela de Tempo: Antes das 21:20 ou Depois das 22:30
     const isTooEarly = currentHour < 21 || (currentHour === 21 && currentMinute < 20);
     const isTooLate = currentHour > 22 || (currentHour === 22 && currentMinute > 30);
 
-    if (!isTPressed && (isTooEarly || isTooLate)) {
+    if (!isProfessor && (isTooEarly || isTooLate)) {
         statusText.innerHTML = "⏳ Fora do horário da chamada. O acesso é permitido apenas das 21:20 às 22:30.";
         statusText.style.color = "#d9534f";
         return; 
     }
 
     statusText.style.color = "#333";
-    statusText.innerHTML = isTPressed ? "🛠️ Modo Teste Ativo! Solicitando GPS..." : "⏳ Solicitando acesso ao seu GPS... Permita no aviso da tela.";
+    statusText.innerHTML = isProfessor ? "🛠️ Modo VIP! Solicitando GPS..." : "⏳ Solicitando acesso ao seu GPS...";
     verifyBtn.disabled = true;
 
     if (!navigator.geolocation) {
@@ -116,10 +120,8 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     navigator.geolocation.getCurrentPosition(function(position) {
         statusText.innerHTML = "⏳ Verificando coordenadas...";
         
-        // Coordenadas aproximadas do Campus Santa Teresinha
         const campusLat = -28.257600; 
         const campusLon = -52.410500;
-
         const userLat = position.coords.latitude;
         const userLon = position.coords.longitude;
 
@@ -132,20 +134,20 @@ document.getElementById('verify-btn').addEventListener('click', function() {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
 
-        // CÓDIGO SECRETO APLICADO AQUI:
-        // Se a tecla T estiver pressionada, raio vira 100km (100.000 metros), senão 500 metros
-        const radius = isTPressed ? 100000 : 500;
+        const radius = isProfessor ? 100000 : 500;
 
         if (distance <= radius) {
-            statusText.innerHTML = isTPressed 
-                ? `✅ Teste Aprovado! Distância: ${Math.round(distance)}m. Carregando...` 
-                : "✅ Localização confirmada! Carregando a chamada...";
+            statusText.innerHTML = isProfessor 
+                ? `✅ Teste Aprovado! Distância: ${Math.round(distance)}m.` 
+                : "✅ Localização confirmada!";
             statusText.style.color = "green";
             
             setTimeout(() => {
                 locationBox.style.display = 'none';
                 chamadaContainer.style.display = 'block';
-            }, 1500);
+                // Injeta a URL do form 1 apenas agora, se o aluno passou nas verificações
+                document.getElementById('iframe-chamada').src = urlForm1;
+            }, 1000);
             
         } else {
             statusText.innerHTML = `❌ Você não parece estar no Campus. Distância atual: ${Math.round(distance)} metros.`;
@@ -153,17 +155,10 @@ document.getElementById('verify-btn').addEventListener('click', function() {
             verifyBtn.disabled = false;
         }
     }, function(error) {
-        let errorMsg = "❌ Erro desconhecido.";
-        if(error.code === 1) errorMsg = "❌ Você negou o acesso à localização. Recarregue a página e permita o acesso.";
-        if(error.code === 2) errorMsg = "❌ Posição indisponível (verifique se o GPS do celular está ligado).";
-        if(error.code === 3) errorMsg = "❌ Demorou muito para achar sua localização.";
-        
-        statusText.innerHTML = errorMsg;
+        statusText.innerHTML = "❌ Não conseguimos ler sua localização. Verifique as permissões do seu navegador/celular.";
         verifyBtn.disabled = false;
     }, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
+        enableHighAccuracy: true, timeout: 15000, maximumAge: 0
     });
 });
 </script>
