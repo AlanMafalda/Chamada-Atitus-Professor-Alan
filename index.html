@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validação de Presença - Atitus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #location-box {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        #verify-btn {
+            padding: 12px 24px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        #verify-btn:hover {
+            background-color: #004494;
+        }
+        #verify-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        #status-message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        iframe {
+            width: 100%;
+            height: 950px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="location-box">
+        <h2 style="margin-top: 0; color: #333;">Validação de Presença</h2>
+        <p style="color: #555; margin-bottom: 20px;">Para preencher o feedback, clique abaixo e confirme que você está no Campus Santa Teresinha.</p>
+        <button id="verify-btn">📍 Validar Minha Localização</button>
+        <p id="status-message"></p>
+    </div>
+
+    <div id="form-container" style="display: none;">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeMqlH6cBChrZP8qOah9P7Te0Vgb6CxFzcOrl256aTljv-2Vw/viewform?embedded=true">Carregando…</iframe>
+    </div>
+</div>
+
+<script>
+document.getElementById('verify-btn').addEventListener('click', function() {
+    const statusText = document.getElementById('status-message');
+    const formContainer = document.getElementById('form-container');
+    const verifyBtn = document.getElementById('verify-btn');
+    const locationBox = document.getElementById('location-box');
+
+    statusText.innerHTML = "⏳ Solicitando acesso ao seu GPS... Permita no aviso que aparecer na tela.";
+    verifyBtn.disabled = true;
+
+    if (!navigator.geolocation) {
+        statusText.innerHTML = "❌ Seu navegador não suporta geolocalização.";
+        verifyBtn.disabled = false;
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(function(position) {
+        statusText.innerHTML = "⏳ Verificando coordenadas...";
+        
+        // Coordenadas aproximadas do Campus Santa Teresinha
+        const campusLat = -28.257600; 
+        const campusLon = -52.410500;
+
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+
+        const R = 6371e3; 
+        const dLat = (userLat - campusLat) * Math.PI / 180;
+        const dLon = (userLon - campusLon) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(campusLat * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+
+        // Raio de 500 metros
+        const radius = 500;
+
+        if (distance <= radius) {
+            statusText.innerHTML = "✅ Localização confirmada! Carregando o formulário...";
+            statusText.style.color = "green";
+            
+            setTimeout(() => {
+                locationBox.style.display = 'none';
+                formContainer.style.display = 'block';
+            }, 1500);
+            
+        } else {
+            statusText.innerHTML = `❌ Você não parece estar no Campus. Distância atual: ${Math.round(distance)} metros.`;
+            statusText.style.color = "red";
+            verifyBtn.disabled = false;
+        }
+    }, function(error) {
+        let errorMsg = "❌ Erro desconhecido.";
+        if(error.code === 1) errorMsg = "❌ Você negou o acesso à localização. Recarregue a página e permita o acesso.";
+        if(error.code === 2) errorMsg = "❌ Posição indisponível (verifique se o GPS do celular está ligado).";
+        if(error.code === 3) errorMsg = "❌ Demorou muito para achar sua localização.";
+        
+        statusText.innerHTML = errorMsg;
+        verifyBtn.disabled = false;
+    }, {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+    });
+});
+</script>
+</body>
+</html>
