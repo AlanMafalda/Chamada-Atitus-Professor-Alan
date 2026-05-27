@@ -29,7 +29,7 @@
             Para acessar a chamada e o feedback, confirme que você está no Campus Santa Teresinha.
         </p>
         <p class="warning-text">
-            Atenção: O sistema só será liberado a partir das 21:20.
+            Atenção: O sistema só estará liberado das 21:20 até as 22:30.
         </p>
         <button id="verify-btn">📍 Validar Localização e Iniciar</button>
         <p id="status-message"></p>
@@ -93,8 +93,12 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    if (!isTPressed && (currentHour < 21 || (currentHour === 21 && currentMinute < 20))) {
-        statusText.innerHTML = "⏳ O formulário ainda está bloqueado. Aguarde até as 21:20 para validar.";
+    // Lógica da Janela de Tempo: Antes das 21:20 ou Depois das 22:30
+    const isTooEarly = currentHour < 21 || (currentHour === 21 && currentMinute < 20);
+    const isTooLate = currentHour > 22 || (currentHour === 22 && currentMinute > 30);
+
+    if (!isTPressed && (isTooEarly || isTooLate)) {
+        statusText.innerHTML = "⏳ Fora do horário da chamada. O acesso é permitido apenas das 21:20 às 22:30.";
         statusText.style.color = "#d9534f";
         return; 
     }
