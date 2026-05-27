@@ -3,101 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validação de Presença - Atitus</title>
+    <title>Chamada e Feedback - Atitus</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        #location-box {
-            text-align: center;
-            padding: 30px 20px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        #verify-btn {
-            padding: 12px 24px;
-            background-color: #0056b3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        #verify-btn:hover {
-            background-color: #004494;
-        }
-        #verify-btn:disabled {
-            background-color: #999;
-            cursor: not-allowed;
-        }
-        #status-message {
-            margin-top: 20px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        iframe {
-            width: 100%;
-            height: 950px;
-            border: none;
-        }
-        .warning-text {
-            color: #d9534f;
-            font-weight: bold;
-            margin-top: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f0f2f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        #location-box { text-align: center; padding: 30px 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #verify-btn { padding: 12px 24px; background-color: #0056b3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; margin-top: 10px; width: 100%; max-width: 400px; }
+        #verify-btn:hover { background-color: #004494; }
+        #verify-btn:disabled { background-color: #999; cursor: not-allowed; }
+        #status-message { margin-top: 20px; font-size: 16px; font-weight: bold; }
+        iframe { width: 100%; height: 950px; border: none; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .warning-text { color: #d9534f; font-weight: bold; margin-bottom: 25px; }
+        
+        /* Esconde os formulários inicialmente */
+        #chamada-container, #feedback-container { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    
     <div id="location-box">
         <h2 style="margin-top: 0; color: #333;">Validação de Presença</h2>
         <p style="color: #555; margin-bottom: 5px;">
-            Para preencher o feedback, clique abaixo e confirme que você está no Campus Santa Teresinha.
+            Para acessar a chamada e o feedback, confirme que você está no Campus Santa Teresinha.
         </p>
-        <p class="warning-text" style="margin-bottom: 25px;">
-            Atenção: O formulário só aceitará respostas a partir das 21:20.
+        <p class="warning-text">
+            Atenção: O sistema só será liberado a partir das 21:20.
         </p>
-        <button id="verify-btn">📍 Validar Minha Localização</button>
+        <button id="verify-btn">📍 Validar Localização e Iniciar</button>
         <p id="status-message"></p>
     </div>
 
-    <div id="form-container" style="display: none;">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeMqlH6cBChrZP8qOah9P7Te0Vgb6CxFzcOrl256aTljv-2Vw/viewform?embedded=true">Carregando…</iframe>
+    <div id="chamada-container">
+        <h3 style="text-align: center; color: #333;">Passo 1: Assine a Chamada</h3>
+        <iframe id="iframe-chamada" src="https://docs.google.com/forms/d/e/1FAIpQLSdAbejon1aYUmKAkeuXB3IzvvBW9P7RcdIr8lJYVkNJX6ejDg/viewform?embedded=true">Carregando…</iframe>
     </div>
+
+    <div id="feedback-container">
+        <h3 style="text-align: center; color: #333;">Passo 2: Preencha o Feedback</h3>
+        <iframe id="iframe-feedback" src="https://docs.google.com/forms/d/e/1FAIpQLSeMqlH6cBChrZP8qOah9P7Te0Vgb6CxFzcOrl256aTljv-2Vw/viewform?embedded=true">Carregando…</iframe>
+    </div>
+
 </div>
 
 <script>
+// Lógica para detectar quando o aluno clica em "Enviar" na chamada
+let chamadaCarregada = false;
+
+document.getElementById('iframe-chamada').onload = function() {
+    // O iframe dá "onload" duas vezes: 
+    // 1ª vez: quando o formulário em branco aparece.
+    // 2ª vez: quando a tela de "Sua resposta foi registrada" aparece após enviar.
+    
+    if (chamadaCarregada) {
+        // Se já estava carregada, significa que o aluno acabou de enviar!
+        // Esconde a chamada e mostra o feedback.
+        document.getElementById('chamada-container').style.display = 'none';
+        document.getElementById('feedback-container').style.display = 'block';
+        
+        // Rola a página para o topo
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        // Primeiro carregamento
+        chamadaCarregada = true;
+    }
+};
+
+// Lógica do botão de GPS e Horário
 document.getElementById('verify-btn').addEventListener('click', function() {
     const statusText = document.getElementById('status-message');
-    const formContainer = document.getElementById('form-container');
     const verifyBtn = document.getElementById('verify-btn');
     const locationBox = document.getElementById('location-box');
+    const chamadaContainer = document.getElementById('chamada-container');
 
-    // Verifica o horário atual do dispositivo do usuário
+    // Verifica o horário do dispositivo
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    // Trava de horário: Bloqueia se for antes das 21:20
     if (currentHour < 21 || (currentHour === 21 && currentMinute < 20)) {
         statusText.innerHTML = "⏳ O formulário ainda está bloqueado. Aguarde até as 21:20 para validar.";
-        statusText.style.color = "#d9534f"; // Vermelho para indicar bloqueio
-        return; // Interrompe a execução aqui, não pede o GPS ainda.
+        statusText.style.color = "#d9534f";
+        return; 
     }
 
-    // Se o horário estiver correto, continua a execução
-    statusText.style.color = "#333"; // Retorna a cor normal do texto
-    statusText.innerHTML = "⏳ Solicitando acesso ao seu GPS... Permita no aviso que aparecer na tela.";
+    statusText.style.color = "#333";
+    statusText.innerHTML = "⏳ Solicitando acesso ao seu GPS... Permita no aviso da tela.";
     verifyBtn.disabled = true;
 
     if (!navigator.geolocation) {
@@ -129,12 +121,13 @@ document.getElementById('verify-btn').addEventListener('click', function() {
         const radius = 500;
 
         if (distance <= radius) {
-            statusText.innerHTML = "✅ Localização confirmada! Carregando o formulário...";
+            statusText.innerHTML = "✅ Localização confirmada! Carregando a chamada...";
             statusText.style.color = "green";
             
+            // Se passar na localização, esconde a validação e mostra o forms da chamada
             setTimeout(() => {
                 locationBox.style.display = 'none';
-                formContainer.style.display = 'block';
+                chamadaContainer.style.display = 'block';
             }, 1500);
             
         } else {
