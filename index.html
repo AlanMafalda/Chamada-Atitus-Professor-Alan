@@ -52,23 +52,34 @@
 let chamadaCarregada = false;
 
 document.getElementById('iframe-chamada').onload = function() {
-    // O iframe dá "onload" duas vezes: 
-    // 1ª vez: quando o formulário em branco aparece.
-    // 2ª vez: quando a tela de "Sua resposta foi registrada" aparece após enviar.
-    
     if (chamadaCarregada) {
-        // Se já estava carregada, significa que o aluno acabou de enviar!
-        // Esconde a chamada e mostra o feedback.
         document.getElementById('chamada-container').style.display = 'none';
         document.getElementById('feedback-container').style.display = 'block';
-        
-        // Rola a página para o topo
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-        // Primeiro carregamento
         chamadaCarregada = true;
     }
 };
+
+// ==========================================
+// CÓDIGO SECRETO (CHEAT CODE) PARA TESTES
+// Monitora a tecla 'T' do teclado
+// ==========================================
+let isTPressed = false;
+
+document.addEventListener('keydown', function(event) {
+    if (event.key && event.key.toLowerCase() === 't') {
+        isTPressed = true;
+    }
+});
+
+document.addEventListener('keyup', function(event) {
+    if (event.key && event.key.toLowerCase() === 't') {
+        isTPressed = false;
+    }
+});
+// ==========================================
+
 
 // Lógica do botão de GPS e Horário
 document.getElementById('verify-btn').addEventListener('click', function() {
@@ -77,19 +88,19 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     const locationBox = document.getElementById('location-box');
     const chamadaContainer = document.getElementById('chamada-container');
 
-    // Verifica o horário do dispositivo
+    // Verifica o horário do dispositivo (Se o T estiver pressionado, pula essa verificação)
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    if (currentHour < 21 || (currentHour === 21 && currentMinute < 20)) {
+    if (!isTPressed && (currentHour < 21 || (currentHour === 21 && currentMinute < 20))) {
         statusText.innerHTML = "⏳ O formulário ainda está bloqueado. Aguarde até as 21:20 para validar.";
         statusText.style.color = "#d9534f";
         return; 
     }
 
     statusText.style.color = "#333";
-    statusText.innerHTML = "⏳ Solicitando acesso ao seu GPS... Permita no aviso da tela.";
+    statusText.innerHTML = isTPressed ? "🛠️ Modo Teste Ativo! Solicitando GPS..." : "⏳ Solicitando acesso ao seu GPS... Permita no aviso da tela.";
     verifyBtn.disabled = true;
 
     if (!navigator.geolocation) {
@@ -117,14 +128,16 @@ document.getElementById('verify-btn').addEventListener('click', function() {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
 
-        // Raio de 500 metros
-        const radius = 500;
+        // CÓDIGO SECRETO APLICADO AQUI:
+        // Se a tecla T estiver pressionada, raio vira 100km (100.000 metros), senão 500 metros
+        const radius = isTPressed ? 100000 : 500;
 
         if (distance <= radius) {
-            statusText.innerHTML = "✅ Localização confirmada! Carregando a chamada...";
+            statusText.innerHTML = isTPressed 
+                ? `✅ Teste Aprovado! Distância: ${Math.round(distance)}m. Carregando...` 
+                : "✅ Localização confirmada! Carregando a chamada...";
             statusText.style.color = "green";
             
-            // Se passar na localização, esconde a validação e mostra o forms da chamada
             setTimeout(() => {
                 locationBox.style.display = 'none';
                 chamadaContainer.style.display = 'block';
