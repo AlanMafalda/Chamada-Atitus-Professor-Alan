@@ -51,30 +51,32 @@
 // ==========================================
 // PROTEÇÕES BÁSICAS DE PÁGINA
 // ==========================================
-// Tenta bloquear F12 e atalhos de desenvolvedor
 document.onkeydown = function(e) {
     if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.shiftKey && e.keyCode == 74)) {
         return false;
     }
 };
 
-// URLs codificadas em Base64 para não aparecerem na busca do código-fonte
-// Decodificando essas strings, temos as URLs originais do Google Forms
-const urlForm1 = atob('aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTZEFiZWpvbjFhWVVtS0FrZXVYQjNJenZ2Qlc5UDdSY2RJcjhsSllWa05KWDZlakRnL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=');
-const urlForm2 = atob('aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTZU1xbEg2Y0JDaHJaUDhxT2FoOVA3VGUwVmdiNmN4RnpjT3JsMjU2YVRsanYtMlZ3L3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=');
+// Sistema de ofuscação reversa (Garante 100% de precisão nos links sem corromper caracteres)
+function obterUrlF1() {
+    return ["https://", "docs.", "google.", "com/forms/d/e/", "1FAIpQLSdAbejon1aYUmKAkeuXB3IzvvBW9P7RcdIr8lJYVkNJX6ejDg", "/viewform?embedded=true"].join("");
+}
+
+function obterUrlF2() {
+    return ["https://", "docs.", "google.", "com/forms/d/e/", "1FAIpQLSeMqlH6cBChrZP8qOah9P7Te0Vgb6CxFzcOrl256aTljv-2Vw", "/viewform?embedded=true"].join("");
+}
 
 // Lógica de transição entre chamada e feedback
 let chamadaCarregada = false;
 document.getElementById('iframe-chamada').onload = function() {
-    // Evita executar isso quando o iframe está vazio (antes de validar)
     if (this.src === "" || this.src === window.location.href) return;
 
     if (chamadaCarregada) {
         document.getElementById('chamada-container').style.display = 'none';
         document.getElementById('feedback-container').style.display = 'block';
         
-        // Injeta a URL do feedback apenas na hora de usar
-        document.getElementById('iframe-feedback').src = urlForm2;
+        // Injeta a URL correta e limpa do feedback
+        document.getElementById('iframe-feedback').src = obterUrlF2();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
         chamadaCarregada = true;
@@ -145,8 +147,7 @@ document.getElementById('verify-btn').addEventListener('click', function() {
             setTimeout(() => {
                 locationBox.style.display = 'none';
                 chamadaContainer.style.display = 'block';
-                // Injeta a URL do form 1 apenas agora, se o aluno passou nas verificações
-                document.getElementById('iframe-chamada').src = urlForm1;
+                document.getElementById('iframe-chamada').src = obterUrlF1();
             }, 1000);
             
         } else {
